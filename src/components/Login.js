@@ -4,20 +4,31 @@ import { chakeValidData } from "../Util/Validate";
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
+  updateProfile,
 } from "firebase/auth";
 import { auth } from "../Util/firebase";
+import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { addUser } from "../Util/userSlice";
 
 const Login = () => {
   const [signIn, setSignIn] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
+  const navigate = useNavigate();
+  const dispatch = useDispatch;
 
-  const email = useRef(null);
-  const password = useRef(null);
-  // const name =useRef();
+  const email = useRef("");
+  const password = useRef("");
+  const name = useRef("");
 
   const signInHandler = (e) => {
     e.preventDefault();
-    const message = chakeValidData(email.current.value, password.current.value);
+    const message = chakeValidData(
+      signIn,
+      email.current.value,
+      password.current.value,
+      name.current.value
+    );
     setErrorMessage(message);
 
     if (message) return;
@@ -30,7 +41,19 @@ const Login = () => {
       )
         .then((userCredential) => {
           const user = userCredential.user;
-          console.log(user);
+          updateProfile(auth.currentUser, {
+            displayName: name.current.value,
+          })
+            .then(() => {
+              const { uid, email, displayName } = auth.currentUser;
+              dispatch(
+                addUser({ uid: uid, email: email, displayName: displayName })
+              );
+              navigate("/browse");
+            })
+            .catch((error) => {
+              setErrorMessage(error);
+            });
         })
         .catch((error) => {
           const errorCode = error.code;
@@ -46,10 +69,12 @@ const Login = () => {
         .then((userCredential) => {
           const user = userCredential.user;
           console.log(user);
+          navigate("/browse");
         })
         .catch((error) => {
           const errorCode = error.code;
           const errorMessage = error.message;
+          console.log(errorCode, errorMessage);
           setErrorMessage(errorCode + "-" + errorMessage);
         });
     }
@@ -75,35 +100,30 @@ const Login = () => {
         </h1>
         {!signIn && (
           <input
-            // ref={name}
+            ref={name}
             className="p-2 mx-12 m-2 w-[80%] rounded-lg h-12 bg-gray-600"
             type="text"
             placeholder="Name"
           />
         )}
-        {/* {errorMessage && errorMessage.includes("Name") && <p className="text-red-600 font-bold py-3 text-lg mx-12">{errorMessage}</p>} */}
         <input
           ref={email}
           className="p-2 mx-12 m-4 w-[80%] rounded-lg h-12 bg-gray-600"
           type="text"
           placeholder="Email or phone number"
         />
-        {errorMessage && errorMessage.includes("Email") && (
-          <p className="text-red-600 font-bold py-3 text-lg mx-12">
-            {errorMessage}
-          </p>
-        )}
         <input
           ref={password}
           className="p-2 mx-12 m-2 w-[80%] rounded-lg h-12 bg-gray-600"
           type="password"
           placeholder="Password"
         />
-        {errorMessage && errorMessage.includes("Password") && (
+        {errorMessage && (
           <p className="text-red-600 font-bold py-3 text-lg mx-12">
             {errorMessage}
           </p>
         )}
+        ;
         <button
           className="p-2 mx-12 m-3 bg-red-700 text-white w-[80%] rounded-lg"
           onClick={signInHandler}

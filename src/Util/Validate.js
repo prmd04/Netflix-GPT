@@ -1,17 +1,18 @@
-export const chakeValidData = (email, password) => {
+export const chakeValidData = (isSignin,email,password, name) => {
   const isEmailValid = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(email);
-  // const isNameValid = /\b([A-ZÀ-ÿ][-,a-z. ']+[ ]*)+/.test(name);
+  
   const isPasswordValid = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$/.test(password);
+  const isNameValid = /\b([A-ZÀ-ÿ][-,a-z. ']+[ ]*)+/.test(name);
 
-  // if (name !== null && !isNameValid) {
-  //   return "Name is Not Valid";
-  // }
-
-  if (!isEmailValid) {
+  if (!isSignin &&!isNameValid) {
+    return "Name is Not Valid";
+  }
+  else if (!isEmailValid) {
     return "Email is Not Valid";
   }
-  if (!isPasswordValid) {
+  else if (!isPasswordValid) {
     return "Password is Not Valid";
   }
+  
 
 }
